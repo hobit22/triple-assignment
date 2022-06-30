@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-public class Review {
+public class Review extends TimeStamped{
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(

@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Entity
 @NoArgsConstructor
-public class Place {
+public class Place extends TimeStamped{
 
     @Id
     @GeneratedValue(generator = "UUID")
