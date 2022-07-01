@@ -18,13 +18,12 @@ public class UserController {
 
     @PostMapping("/user/signup")
     public ResponseEntity<Object> registerUser(@RequestBody SignupRequestDto requestDto) {
-        userService.registerUser(requestDto);
-        return new ResponseEntity<>(HttpStatus.OK);
+        String id = String.valueOf(userService.registerUser(requestDto));
+        return new ResponseEntity<>(" user_id : " + id, HttpStatus.OK);
     }
-
 
     @GetMapping("/points")
     public ResponseEntity<Object> getPoints(@RequestBody PointDto requestDto) {
-        return new ResponseEntity<>( userService.getPoints(requestDto), HttpStatus.OK);
+        return new ResponseEntity<>( requestDto.getUserId() + "의 포인트 : " + userService.getPoints(requestDto), HttpStatus.OK);
     }
 }

@@ -16,8 +16,8 @@ public class PlaceController {
 
     @PostMapping("/place")
     public ResponseEntity<Object> createPlace(@RequestBody PlaceRequestDto requestDto) {
-        placeService.createPlace(requestDto);
+        String id = String.valueOf(placeService.createPlace(requestDto));
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>("place_id : " + id ,HttpStatus.OK);
     }
 }

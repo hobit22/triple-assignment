@@ -1,6 +1,8 @@
 package com.triple.tripleassignment.service;
 
 import com.triple.tripleassignment.dto.EventRequestDto;
+import com.triple.tripleassignment.exception.CustomException;
+import com.triple.tripleassignment.exception.ErrorCode;
 import com.triple.tripleassignment.model.*;
 import com.triple.tripleassignment.model.enumType.ActionType;
 import com.triple.tripleassignment.repository.*;
@@ -24,35 +26,40 @@ public class ReviewService {
     private final ImageService imageService;
 
     @Transactional
-    public void publishEvent(EventRequestDto requestDto) {
+    public String publishEvent(EventRequestDto requestDto) {
         ActionType action = requestDto.getAction();
+        StringBuilder sb = new StringBuilder();
         switch (action) {
             case ADD:
-                addReview(requestDto);
+                sb.append("추가한 리뷰 아이디 : ");
+                sb.append(addReview(requestDto));
                 break;
             case MOD:
-                modReview(requestDto);
+                sb.append("수정한 리뷰 아이디 : ");
+                sb.append(modReview(requestDto));
                 break;
             case DELETE:
-                deleteReview(requestDto);
+                sb.append("삭제한 리뷰 아이디 : ");
+                sb.append(deleteReview(requestDto));
                 break;
         }
+        return String.valueOf(sb);
     }
 
 
-    private void addReview(EventRequestDto requestDto) {
+    private String addReview(EventRequestDto requestDto) {
         String reviewId = requestDto.getReviewId();
         String placeId = requestDto.getPlaceId();
         String userId = requestDto.getUserId();
 
         User user = userRepository.findById(UUID.fromString(userId))
-                .orElseThrow(() -> new IllegalArgumentException("유저없다."));
+                .orElseThrow(()-> new CustomException(ErrorCode.NOT_FOUND_USER_ID));
         Place place = placeRepository.findById(UUID.fromString(placeId))
-                .orElseThrow(() -> new IllegalArgumentException("장소없다."));
+                .orElseThrow(()-> new CustomException(ErrorCode.NOT_FOUND_PLACE_ID));
 
         Optional<Review> foundReview = reviewRepository.findByPlaceAndUserAndDeleteTimeIsNull(place, user);
         if (foundReview.isPresent()) {
-            throw new IllegalArgumentException("이 유저는 이 장소에 이미 리뷰를 남겼습니다.");
+            throw new CustomException(ErrorCode.ALREADY_EXIST_REVIEW);
         }
 
         Review review = Review.builder()
@@ -81,8 +88,7 @@ public class ReviewService {
             change = change + 1;
         }
 
-//        reviewRepository.save(review);
-//        reviewRepository.
+        reviewRepository.save(review);
 
 
         PointLog pointLog = PointLog.builder()
@@ -96,20 +102,21 @@ public class ReviewService {
         pointLogRepository.save(pointLog);
         user.addPointLog(pointLog);
 
+        return reviewId;
     }
 
-    private void modReview(EventRequestDto requestDto) {
+    private String modReview(EventRequestDto requestDto) {
         Review review = reviewRepository.findById(UUID.fromString(requestDto.getReviewId()))
-                .orElseThrow(()-> new IllegalArgumentException("리뷰 없다."));
+                .orElseThrow(()-> new CustomException(ErrorCode.NOT_FOUND_REVIEW_ID));
 
         User user = userRepository.findById(UUID.fromString(requestDto.getUserId()))
-                .orElseThrow(() -> new IllegalArgumentException("유저없다."));
+                .orElseThrow(()-> new CustomException(ErrorCode.NOT_FOUND_USER_ID));
         if(!UUID.fromString(requestDto.getUserId()).equals(review.getUser().getId())){
-            throw new IllegalArgumentException("작성자가 아닙니다.");
+            throw new CustomException(ErrorCode.NOT_AUTHOR);
         }
 
         if(!UUID.fromString(requestDto.getPlaceId()).equals(review.getPlace().getId())){
-            throw new IllegalArgumentException("수정하려는 리뷰와 장소가 일치하지 않습니다.");
+            throw new CustomException(ErrorCode.NOT_SAME_REVIEW_AND_PLACE);
         }
 
         long change = 0L;
@@ -120,10 +127,7 @@ public class ReviewService {
             change = change - 1;
         } else if(requestDto.getAttachedPhotoIds().size() > 0){
             for(String photoId : requestDto.getAttachedPhotoIds()){
-                Image image = imageRepository.findById(UUID.fromString(photoId))
-                        .orElseThrow(() -> new IllegalArgumentException("이미지 없다."));
-                image.setReview(review);
-                imageList.add(image);
+                imageService.uploadImage(photoId, review);
             }
             if(review.getImageList().isEmpty()){
                 change = change + 1;
@@ -143,21 +147,23 @@ public class ReviewService {
 
         pointLogRepository.save(pointLog);
         user.addPointLog(pointLog);
+
+        return requestDto.getReviewId();
     }
 
-    private void deleteReview(EventRequestDto requestDto) {
+    private String deleteReview(EventRequestDto requestDto) {
         Review review = reviewRepository.findById(UUID.fromString(requestDto.getReviewId()))
-                .orElseThrow(()-> new IllegalArgumentException("리뷰 없다."));
+                .orElseThrow(()-> new CustomException(ErrorCode.NOT_FOUND_REVIEW_ID));
 
         User user = userRepository.findById(UUID.fromString(requestDto.getUserId()))
-                .orElseThrow(() -> new IllegalArgumentException("유저없다."));
+                .orElseThrow(()-> new CustomException(ErrorCode.NOT_FOUND_USER_ID));
 
         if(!UUID.fromString(requestDto.getUserId()).equals(review.getUser().getId())){
-            throw new IllegalArgumentException("작성자가 아닙니다.");
+            throw  new CustomException(ErrorCode.NOT_AUTHOR);
         }
 
         if(!UUID.fromString(requestDto.getPlaceId()).equals(review.getPlace().getId())){
-            throw new IllegalArgumentException("삭제하려는 리뷰와 장소가 일치하지 않습니다.");
+            throw new CustomException(ErrorCode.NOT_SAME_REVIEW_AND_PLACE);
         }
 
         List<PointLog> pointLogs = pointLogRepository.findAllByReview(review);
@@ -183,6 +189,7 @@ public class ReviewService {
 
         pointLogRepository.save(pointLog);
         user.addPointLog(pointLog);
+        return requestDto.getReviewId();
     }
 
 }

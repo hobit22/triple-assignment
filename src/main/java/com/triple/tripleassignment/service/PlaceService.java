@@ -6,13 +6,17 @@ import com.triple.tripleassignment.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class PlaceService {
     private final PlaceRepository placeRepository;
 
-    public void createPlace(PlaceRequestDto requestDto) {
+    public UUID createPlace(PlaceRequestDto requestDto) {
         Place place = new Place(requestDto);
         placeRepository.save(place);
+
+        return place.getId();
     }
 }
