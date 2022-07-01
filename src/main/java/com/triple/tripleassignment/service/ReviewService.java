@@ -62,6 +62,20 @@ public class ReviewService {
             throw new CustomException(ErrorCode.ALREADY_EXIST_REVIEW);
         }
 
+        if(reviewRepository.findById(UUID.fromString(reviewId)).isPresent()){
+            throw new CustomException(ErrorCode.DUPLICATE_REVIEW_ID);
+        }
+
+        long change = 0L;
+        if (!reviewRepository.existsByPlaceAndDeleteTimeNull(place)){
+            change = change + 1;
+        }
+
+        // 1자 이상 텍스트 작성 +1점
+        if (requestDto.getContent().trim().length() > 0) {
+            change = change + 1;
+        }
+
         Review review = Review.builder()
                 .id(UUID.fromString(reviewId))
                 .content(requestDto.getContent())
@@ -69,11 +83,8 @@ public class ReviewService {
                 .place(place)
                 .build();
 
-        long change = 0L;
-        // 1자 이상 텍스트 작성 +1점
-        if (requestDto.getContent().trim().length() > 0) {
-            change = change + 1;
-        }
+        reviewRepository.save(review);
+
         if (requestDto.getAttachedPhotoIds().size() > 0) {
             for(String photoId : requestDto.getAttachedPhotoIds()){
                 imageService.uploadImage(photoId, review);
@@ -83,12 +94,9 @@ public class ReviewService {
             }
             change = change + 1;
         }
-
-        if (!reviewRepository.existsByPlaceAndDeleteTimeNull(place)){
-            change = change + 1;
-        }
-
-        reviewRepository.save(review);
+        boolean tmp = reviewRepository.existsByPlaceAndDeleteTimeNull(place);
+        boolean tmp1 = reviewRepository.existsByPlace(place);
+        List<Review> tmplist = reviewRepository.findAllByPlaceAndDeleteTimeNull(place);
 
 
         PointLog pointLog = PointLog.builder()

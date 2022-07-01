@@ -18,6 +18,7 @@ public enum ErrorCode {
     NOT_FOUND_IMAGE_ID(HttpStatus.BAD_REQUEST, "400", "존재하지 않는 이미지 아이디입니다."),
     // 회원가입
     SIGNUP_USER_ID_DUPLICATE(HttpStatus.BAD_REQUEST, "400", "해당 아이디가 이미 존재합니다."),
+    DUPLICATE_REVIEW_ID(HttpStatus.BAD_REQUEST, "400", "해당 리뷰 아이디가 이미 존재합니다."),
 
     // color가 theme에 존재하지 않음
     NOT_AUTHOR(HttpStatus.BAD_REQUEST, "400", "작성자가 아닙니다."),

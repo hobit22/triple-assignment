@@ -5,6 +5,7 @@ import com.triple.tripleassignment.model.Review;
 import com.triple.tripleassignment.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,4 +15,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     boolean existsByPlace(Place place);
 
     boolean existsByPlaceAndDeleteTimeNull(Place place);
+
+    List<Review> findAllByPlaceAndDeleteTimeNull(Place place);
 }
