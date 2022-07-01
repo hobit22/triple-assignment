@@ -23,13 +23,13 @@ public class User extends TimeStamped {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @Column
+    @Column(nullable = false)
     private String username;
 
-    @Column
+    @Column(nullable = false)
     private String password;
 
-    @Column
+    @Column(columnDefinition = "bigint default 0")
     private Long point;
 
     @OneToMany(mappedBy = "user")
@@ -39,5 +39,10 @@ public class User extends TimeStamped {
         this.username = requestDto.getUsername();
         this.password = requestDto.getPassword();
         this.point = 0L;
+    }
+
+    public void addPointLog(PointLog pointLog) {
+        this.point = this.point + pointLog.getVariation();
+        this.pointLogs.add(pointLog);
     }
 }

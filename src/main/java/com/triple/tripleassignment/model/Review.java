@@ -1,21 +1,28 @@
 package com.triple.tripleassignment.model;
 
-import org.hibernate.annotations.GenericGenerator;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
-public class Review extends TimeStamped{
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+public class Review extends TimeStamped {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(
-            name = "UUID",
-            strategy = "org.hibernate.id.UUIDGenerator"
-    )
+//    @GeneratedValue(generator = "UUID")
+//    @GenericGenerator(
+//            name = "UUID",
+//            strategy = "org.hibernate.id.UUIDGenerator"
+//    )
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
@@ -33,12 +40,22 @@ public class Review extends TimeStamped{
     @OneToMany(mappedBy = "review")
     private List<Image> imageList;
 
-    public void addImage(Image image){
-        if(imageList == null){
+    @Column
+    private LocalDateTime deleteTime;
+
+    public void addImage(Image image) {
+        if (imageList == null) {
             imageList = new ArrayList<>();
         }
         imageList.add(image);
-
     }
 
+    public void updateReview(String content, List<Image> imageList) {
+        this.content = content;
+        this.imageList = imageList;
+    }
+
+    public void deleteReview() {
+        this.deleteTime = LocalDateTime.now();
+    }
 }

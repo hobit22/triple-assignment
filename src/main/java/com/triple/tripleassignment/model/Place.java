@@ -1,16 +1,16 @@
 package com.triple.tripleassignment.model;
 
 import com.triple.tripleassignment.dto.PlaceRequestDto;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
+@Getter
 @NoArgsConstructor
 public class Place extends TimeStamped{
 
@@ -23,8 +23,11 @@ public class Place extends TimeStamped{
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @Column
+    @Column(nullable = false)
     private String name;
+
+    @OneToMany(mappedBy = "place")
+    private List<Review> reviewList;
 
     public Place(PlaceRequestDto requestDto) {
         this.name = requestDto.getName();
